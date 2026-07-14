@@ -114,7 +114,7 @@ prot_mode_start:
 
     #enable paging
     mov %cr0, %eax
-    or $0x80000000
+    or $0x80000000, %eax
     mov %eax, %cr0
 
     ljmp $CODE64_SEG, $long_mode_start
