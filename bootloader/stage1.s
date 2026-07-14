@@ -41,12 +41,12 @@ BOOT_DRIVE:
     .byte 0
 
 DAP:
-    .byte 16          #DAP size
+    .byte 16             #DAP size
     .byte 0
     .word STAGE2_SECTORS #num of stage 2 sectors
-    .word 0x8000      # offset
-    .word 0x0000      # segment
-    .quad 1           # LBA = 1
+    .word 0x8000         # offset
+    .word 0x0000         # segment
+    .quad 1              # LBA = 1
 
 message:
     .asciz "Bootloader running."
@@ -57,6 +57,8 @@ error:
 
 
 #real mode BIOS printing
+#==============================
+# requires a pointer to string to be loaded in si
 #==============================
 printf16:
     mov (%si), %al

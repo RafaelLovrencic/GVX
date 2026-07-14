@@ -63,21 +63,39 @@ prot_mode_start:
     mov $msg32, %esi
     call text_mode_print
 
-    jmp .
+    jmp long_mode_start
 
+
+#.code64
+
+msg64:
+    .asciz "Entered 64 bit mode. Progressing to kernel."
+
+long_mode_start:
+    mov $0xb8000, %edi
+    mov $12, %eax
+    imul $160, %eax
+    add %eax, %edi
+    mov $msg64, %esi
+    call text_mode_print
+
+    jmp .
 
 #printing via text mode
 #==============================
+#requires video memory address to be loaded in edi
+#and pointer to string to be loaded in esi
+#==============================
 text_mode_print:
-    movb (%esi), %al         # Load 1 byte (ASCII character) from %esi
-    inc %esi                 # Move to next character in string
+    movb (%esi), %al
+    inc %esi
 
-    cmp $0, %al              # Check for null-terminator
+    cmp $0, %al
     je return
 
-    movb $0x0f, %ah          # Load color attribute (White on Black) into %ah
-    movw %ax, (%edi)         # Write both ASCII and color (2 bytes) to VGA memory
-    add $2, %edi             # Advance VGA pointer by 2 bytes (1 character slot)
+    movb $0x0f, %ah
+    movw %ax, (%edi)
+    add $2, %edi
     jmp text_mode_print
 return:
     ret
