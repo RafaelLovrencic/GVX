@@ -1,6 +1,9 @@
 .text 
 .code16
 .global _start
+.global text_mode_print
+
+.extern setup_paging
 
 
 _start:
@@ -104,6 +107,7 @@ prot_mode_start:
 
     #build multi-level page table
     #load address of top-level page table into cr3
+    call setup_paging
 
     #enable PAE
     movl %cr4, %eax
