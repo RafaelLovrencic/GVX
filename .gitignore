@@ -431,3 +431,6 @@ FodyWeavers.xsd
 # binaries and object files
 *.o
 *.bin
+
+#.inc files
+*.inc
