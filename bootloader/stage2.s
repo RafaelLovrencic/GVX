@@ -49,6 +49,42 @@ gdt_desc:
 #==============================
 
 
+# GDT 64 bit
+#==============================
+gdt64_start:
+    .long 0x00000000
+    .long 0x00000000
+
+#CS descriptor
+cs64_desc:
+    .word 0x0000     #limit
+    .word 0          #base
+    .byte 0          #base
+    .byte 0b10011010 #access
+    .byte 0b00100000 #flags and limit
+    .byte 0          #base
+
+#DS descriptor
+ds64_desc:
+    .word 0x0000     #limit
+    .word 0          #base
+    .byte 0          #base
+    .byte 0b10010010 #access
+    .byte 0b00100000 #flags and limit
+    .byte 0          #base
+gdt64_end:
+
+#GDT descriptor
+gdt64_desc:
+    .word gdt64_end - gdt64_start - 1
+    .long gdt64_start
+
+.equ CODE64_SEG, cs_desc - gdt_start
+.equ DATA64_SEG, ds_desc - gdt_start
+#==============================
+
+
+
 .code32
 
 msg32:
@@ -63,7 +99,25 @@ prot_mode_start:
     mov $msg32, %esi
     call text_mode_print
 
-    jmp long_mode_start
+    cli 
+    lgdt gdt64_desc
+
+    #build multi-level page table
+    #load address of top-level page table into cr3
+
+    #enable PAE
+    movl %cr4, %eax
+    orl $0x20, %eax
+    movl %eax, %cr4
+
+    #enable long mode in EFER
+
+    #enable paging
+    mov %cr0, %eax
+    or $0x80000000
+    mov %eax, %cr0
+
+    ljmp $CODE64_SEG, $long_mode_start
 
 
 #.code64
