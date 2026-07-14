@@ -15,6 +15,10 @@ _start:
     mov $0x7c00, %sp
     sti
 
+    mov $0x03, %ax
+	mov $0, %bx
+	int $0x10
+
     mov $message, %si
     call printf16
     
