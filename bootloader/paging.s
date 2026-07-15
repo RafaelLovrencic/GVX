@@ -4,7 +4,7 @@
 
 .global setup_paging
 
-.extern text_mode_print
+.extern text_mode_print32
 
 .equ PML4T_ADDR, 0x1000
 .equ PDPTE_ADDR, 0x2000
@@ -22,8 +22,12 @@
 .equ CR4_PAE_ENABLE, 1 << 5
 
 setup_paging:
+    mov $0xb8000, %edi
+    mov $11, %eax
+    imul $160, %eax
+    add %eax, %edi
     mov $msg_paging, %esi
-    call text_mode_print
+    call text_mode_print32
 
     mov $PML4T_ADDR, %edi
     mov %edi, %cr3
@@ -46,7 +50,8 @@ setup_paging:
     mov $ENTRIES_PER_PT, %ecx
 
 SetEntry:
-    mov %ebx, (%edi)
+    movl %ebx, (%edi)
+    movl $0, 4(%edi)
     add $SIZEOF_PT_ENTRY, %edi
     add $PAGE_SIZE, %ebx
     loop SetEntry

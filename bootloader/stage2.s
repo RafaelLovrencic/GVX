@@ -1,7 +1,7 @@
 .text 
 .code16
 .global _start
-.global text_mode_print
+.global text_mode_print32
 
 .extern setup_paging
 
@@ -73,7 +73,7 @@ ds64_desc:
     .word 0          #base
     .byte 0          #base
     .byte 0b10010010 #access
-    .byte 0b00100000 #flags and limit
+    .byte 0b00000000 #flags and limit
     .byte 0          #base
 gdt64_end:
 
@@ -82,13 +82,33 @@ gdt64_desc:
     .word gdt64_end - gdt64_start - 1
     .long gdt64_start
 
-.equ CODE64_SEG, cs_desc - gdt_start
-.equ DATA64_SEG, ds_desc - gdt_start
+.equ CODE64_SEG, cs64_desc - gdt64_start
+.equ DATA64_SEG, ds64_desc - gdt64_start
 #==============================
 
 
 
 .code32
+
+#printing via text mode
+#==============================
+#requires video memory address to be loaded in edi
+#and pointer to string to be loaded in esi
+#==============================
+text_mode_print32:
+    movb (%esi), %al
+    inc %esi
+
+    cmp $0, %al
+    je return32
+
+    movb $0x0f, %ah
+    movw %ax, (%edi)
+    add $2, %edi
+    jmp text_mode_print32
+return32:
+    ret
+#==============================
 
 msg32:
     .asciz "Entered 32 bit mode. Setting up 64 bit mode."
@@ -96,25 +116,25 @@ msg32:
 prot_mode_start:
 
     mov $0xb8000, %edi
-    mov $11, %eax
+    mov $10, %eax
     imul $160, %eax
     add %eax, %edi
     mov $msg32, %esi
-    call text_mode_print
+    call text_mode_print32
 
     cli 
     lgdt gdt64_desc
 
     #build multi-level page table
     #load address of top-level page table into cr3
+    #enable PAE
     call setup_paging
 
-    #enable PAE
-    movl %cr4, %eax
-    orl $0x20, %eax
-    movl %eax, %cr4
-
     #enable long mode in EFER
+    movl $0xc0000080, %ecx
+    rdmsr
+    orl $0x00000100, %eax
+    wrmsr
 
     #enable paging
     mov %cr0, %eax
@@ -124,19 +144,26 @@ prot_mode_start:
     ljmp $CODE64_SEG, $long_mode_start
 
 
-#.code64
+.code64
 
 msg64:
     .asciz "Entered 64 bit mode. Progressing to kernel."
 
 long_mode_start:
-    mov $0xb8000, %edi
-    mov $12, %eax
-    imul $160, %eax
-    add %eax, %edi
-    mov $msg64, %esi
-    call text_mode_print
+    
+    mov $DATA64_SEG, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %ss
 
+    mov $0x20000, %rsp
+
+    mov $0xb8000, %rdi
+    mov $12, %rax
+    imul $160, %rax
+    add %rax, %rdi
+    lea msg64(%rip), %rsi
+    call text_mode_print64
     jmp .
 
 #printing via text mode
@@ -144,17 +171,17 @@ long_mode_start:
 #requires video memory address to be loaded in edi
 #and pointer to string to be loaded in esi
 #==============================
-text_mode_print:
-    movb (%esi), %al
-    inc %esi
+text_mode_print64:
+    movb (%rsi), %al
+    inc %rsi
 
     cmp $0, %al
-    je return
+    je return64
 
     movb $0x0f, %ah
-    movw %ax, (%edi)
-    add $2, %edi
-    jmp text_mode_print
-return:
+    movw %ax, (%rdi)
+    add $2, %rdi
+    jmp text_mode_print64
+return64:
     ret
 #==============================

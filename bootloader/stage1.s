@@ -15,15 +15,15 @@ _start:
     mov $0x7c00, %sp
     sti
 
-    mov $0x03, %ax
-	mov $0, %bx
-	int $0x10
+    #clear screen
+    #mov $0x03, %ax
+	#mov $0, %bx
+	#int $0x10
 
     mov $message, %si
     call printf16
     
-
-end:
+read_from_drive:
     mov $0x42, %ah
     movb BOOT_DRIVE, %dl
     mov $DAP, %si
