@@ -1,4 +1,5 @@
 ENTRY(_kstart)
+OUTPUT_FORMAT(binary)
 SECTIONS {
     . = 0x10000;
     
@@ -18,5 +19,12 @@ SECTIONS {
     .bss ALIGN(4K) : {
         *(COMMON)
         *(.bss)
+    }
+
+    /DISCARD/ :
+    {
+        *(.note.gnu.property)
+        *(.note*)
+        *(.comment)
     }
 }

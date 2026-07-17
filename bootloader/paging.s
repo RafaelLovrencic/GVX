@@ -23,7 +23,7 @@
 
 setup_paging:
     mov $0xb8000, %edi
-    mov $11, %eax
+    mov $12, %eax
     imul $160, %eax
     add %eax, %edi
     mov $msg_paging, %esi

@@ -4,7 +4,7 @@
 
 _kstart:
     mov $0xb8000, %rdi
-    mov $13, %rax
+    mov $14, %rax
     imul $160, %rax
     add %rax, %rdi
     lea msg_kernel(%rip), %rsi

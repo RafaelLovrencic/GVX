@@ -4,9 +4,28 @@
 .global text_mode_print32
 
 .extern setup_paging
-
+.include "stage2_size.inc"
 
 _start:
+
+load_kernel:
+    movb %dl, BOOT_DRIVE
+
+    mov $0x42, %ah
+    movb BOOT_DRIVE, %dl
+    mov $KERNEL_DAP, %si
+    int $0x13
+
+    jnc gdt_setup
+
+    mov $error, %si
+    call printf16
+    jmp .
+
+gdt_setup:
+    mov $loaded, %si
+    call printf16
+
     cli
     lgdt gdt_desc
 
@@ -15,6 +34,42 @@ _start:
     mov %eax, %cr0
 
     ljmp $CODE_SEG, $prot_mode_start
+
+BOOT_DRIVE:
+    .byte 0
+
+KERNEL_DAP:
+    .byte 16
+    .byte 0
+    .word KERNEL_SECTORS
+    .word 0x0000
+    .word 0x1000      # segment -> 0x10000
+    .quad KERNEL_LBA
+
+loaded:
+    .asciz "\r\nKernel loaded from disk."
+
+error:
+    .asciz "\r\nError reading kernel from drive!"
+
+#real mode BIOS printing
+#==============================
+# requires a pointer to string to be loaded in si
+#==============================
+printf16:
+    mov (%si), %al
+    inc %si
+
+    cmp $0, %al
+    je return
+
+    mov $0x0e, %ah
+    int $0x10
+    jmp printf16
+return:
+    ret
+#==============================
+
 
 
 # GDT
@@ -116,7 +171,7 @@ msg32:
 prot_mode_start:
 
     mov $0xb8000, %edi
-    mov $10, %eax
+    mov $11, %eax
     imul $160, %eax
     add %eax, %edi
     mov $msg32, %esi
@@ -159,12 +214,17 @@ long_mode_start:
     mov $0x20000, %rsp
 
     mov $0xb8000, %rdi
-    mov $12, %rax
+    mov $13, %rax
     imul $160, %rax
     add %rax, %rdi
     lea msg64(%rip), %rsi
     call text_mode_print64
+
     jmp .
+
+    mov 0x10000, %rax
+    jmp *%rax
+
 
 #printing via text mode
 #==============================
