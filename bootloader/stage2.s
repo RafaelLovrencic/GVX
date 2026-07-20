@@ -220,9 +220,9 @@ long_mode_start:
     lea msg64(%rip), %rsi
     call text_mode_print64
 
-    jmp .
+    #jmp .
 
-    mov 0x10000, %rax
+    mov $0x10000, %rax
     jmp *%rax
 
 
