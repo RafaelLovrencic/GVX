@@ -1,14 +1,20 @@
 .code64
 .global _kstart
 
+.extern kernel_main
+
 
 _kstart:
-    mov $0xb8000, %rdi
-    mov $14, %rax
-    imul $160, %rax
-    add %rax, %rdi
-    lea msg_kernel(%rip), %rsi
-    call text_mode_print64
+    #mov $0xb8000, %rdi
+    #mov $14, %rax
+    #imul $160, %rax
+    #add %rax, %rdi
+    #lea msg_kernel(%rip), %rsi
+    #call text_mode_print64
+
+    #jmp .
+
+    call kernel_main
 
     jmp .
 
