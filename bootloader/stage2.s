@@ -16,11 +16,21 @@ load_kernel:
     mov $KERNEL_DAP, %si
     int $0x13
 
-    jnc gdt_setup
+    jnc disable_bios__cursor
 
     mov $error, %si
     call printf16
     jmp .
+
+disable_bios__cursor:
+    mov $0x3D4, %dx
+    mov $0x0A, %al
+    out %al, (%dx)
+
+    mov $0x3D5, %dx
+    mov $0x20, %al
+    out %al, (%dx)
+
 
 gdt_setup:
     mov $loaded, %si
