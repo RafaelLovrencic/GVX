@@ -9,6 +9,12 @@ typedef struct {
     uint16_t offset_2;
     uint32_t offset_3;
     uint32_t reserved;
-} gate_descriptor;
+} __attribute__((packed)) gate_descriptor;
+
+
+extern gate_descriptor idt[256];
+
+
+void IDT_init(void);
 
 #endif
